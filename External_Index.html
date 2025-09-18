@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Python Runner</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .panel {
+            margin-bottom: 20px;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #4b6cb7;
+            display: flex;
+            align-items: center;
+        }
+        
+        .panel-title svg {
+            margin-right: 10px;
+        }
+        
+        .url-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button svg {
+            margin-right: 8px;
+        }
+        
+        #load-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        #load-btn:hover {
+            background-color: #0b7dda;
+            transform: translateY(-2px);
+        }
+        
+        #run-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        #run-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        #clear-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        #clear-btn:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+        
+        .editor-container {
+            margin-bottom: 20px;
+        }
+        
+        .code-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            resize: vertical;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .output-container {
+            margin-bottom: 20px;
+        }
+        
+        #output {
+            min-height: 150px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        
+        .status {
+            padding: 10px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            border-top: 1px solid #eee;
+        }
+        
+        .example-urls {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .example-urls p {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .url-list {
+            list-style-type: none;
+        }
+        
+        .url-list li {
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .url-list a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        
+        .url-list a:hover {
+            text-decoration: underline;
+        }
+        
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .url-input {
+                flex-direction: column;
+            }
+            
+            .button-container {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>External Python Code Runner</h1>
+            <p class="description">Load and execute Python code from external files directly in your browser</p>
+        </header>
+        
+        <div class="content">
+            <div class="panel">
+                <div class="panel-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    <span>Load External Python File</span>
+                </div>
+                
+                <div class="url-input">
+                    <input type="text" id="python-url" placeholder="Enter URL to a Python file (e.g., https://example.com/script.py)">
+                    <button id="load-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Load Code
+                    </button>
+                </div>
+                
+                <div class="example-urls">
+                    <p>Try these example URLs:</p>
+                    <ul class="url-list">
+                        <li>
+                            <a href="https://gist.githubusercontent.com/netdevmike/6b72dfca6d1a551c5f9f8d0e6e2de7e9/raw/7a871c4e6a512e2e0f2e239c6f8f4c2c9e6b2d6f/example.py" target="_blank">
+                                Example 1: Simple math operations
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://gist.githubusercontent.com/netdevmike/8d8c6e6e6e6e6e6e6e6e6e6e6e6e6e6/raw/8d8c6e6e6e6e6e6e6e6e6e6e6e6e6e6/example2.py" target="_blank">
+                                Example 2: String manipulation
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                    <span>Python Code</span>
+                </div>
+                
+                <div class="editor-container">
+                    <textarea id="code" class="code-editor" placeholder="Python code will appear here after loading..."></textarea>
+                </div>
+                
+                <div class="button-container">
+                    <button id="run-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Run Code
+                    </button>
+                    <button id="clear-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Clear Output
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    <span>Output</span>
+                </div>
+                
+                <div class="output-container">
+                    <div id="output"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status">
+            <p id="status">Ready to load and execute Python code. Enter a URL above or try one of the examples.</p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Python Code Runner &copy; 2023 | Powered by Pyodide - Python running in your browser</p>
+    </footer>
+
+    <!-- Load Pyodide -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script>
+        // Initialize Pyodide
+        let pyodide;
+        let outputElement = document.getElementById('output');
+        let statusElement = document.getElementById('status');
+        let codeElement = document.getElementById('code');
+        
+        async function initializePyodide() {
+            statusElement.textContent = "Loading Python runtime...";
+            try {
+                pyodide = await loadPyodide();
+                statusElement.textContent = "Python runtime loaded!";
+                
+                // Set up the Python environment
+                await pyodide.runPython(`
+                    import sys
+                    from js import document
+                    
+                    # Override stdout and stderr to capture output
+                    class OutputCapture:
+                        def write(self, data):
+                            output = document.getElementById("output")
+                            output.textContent += data
+                            
+                        def flush(self):
+                            pass
+                    
+                    sys.stdout = OutputCapture()
+                    sys.stderr = OutputCapture()
+                `);
+            } catch (error) {
+                statusElement.textContent = "Failed to load Python runtime";
+                outputElement.textContent = "Error: " + error.message;
+            }
+        }
+        
+        // Initialize Pyodide on page load
+        initializePyodide();
+        
+        // Load external Python file
+        async function loadExternalPythonFile(url) {
+            if (!url) {
+                outputElement.textContent = "Please enter a valid URL";
+                return;
+            }
+            
+            statusElement.textContent = "Loading Python file...";
+            outputElement.textContent = '';
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const code = await response.text();
+                codeElement.value = code;
+                statusElement.textContent = "Python file loaded successfully!";
+            } catch (error) {
+                statusElement.textContent = "Failed to load Python file";
+                outputElement.textContent = "Error: " + error.message;
+            }
+        }
+        
+        // Run Python code
+        async function runPython() {
+            if (!pyodide) {
+                outputElement.textContent = "Python runtime not loaded yet. Please wait...";
+                return;
+            }
+            
+            const code = codeElement.value;
+            if (!code.trim()) {
+                outputElement.textContent = "No code to execute. Please load a Python file first.";
+                return;
+            }
+            
+            outputElement.textContent = '';
+            statusElement.textContent = 'Running...';
+            
+            try {
+                await pyodide.runPythonAsync(code);
+                statusElement.textContent = 'Execution completed';
+            } catch (error) {
+                outputElement.textContent = error.message;
+                statusElement.textContent = 'Error occurred';
+            }
+        }
+        
+        // Clear output
+        function clearOutput() {
+            outputElement.textContent = '';
+            statusElement.textContent = 'Output cleared';
+        }
+        
+        // Set up event listeners
+        document.getElementById('load-btn').addEventListener('click', function() {
+            const url = document.getElementById('python-url').value;
+            loadExternalPythonFile(url);
+        });
+        
+        document.getElementById('run-btn').addEventListener('click', runPython);
+        document.getElementById('clear-btn').addEventListener('click', clearOutput);
+        
+        // Allow pressing Enter in the URL input to load the file
+        document.getElementById('python-url').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const url = document.getElementById('python-url').value;
+                loadExternalPythonFile(url);
+            }
+        });
+        
+        // Example of loading a file from a URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileUrl = urlParams.get('file');
+        if (fileUrl) {
+            document.getElementById('python-url').value = fileUrl;
+            loadExternalPythonFile(fileUrl);
+        }
+    </script>
+</body>
+</html>
