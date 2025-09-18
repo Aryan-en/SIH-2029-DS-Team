@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Runner</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .editor-container {
+            padding: 20px;
+        }
+        
+        .code-editor {
+            width: 100%;
+            min-height: 250px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 15px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        #run-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        #run-btn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        #clear-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        #clear-btn:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+        
+        #examples-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        #examples-btn:hover {
+            background-color: #0b7dda;
+            transform: translateY(-2px);
+        }
+        
+        .output-container {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .output-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #4b6cb7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        #output {
+            min-height: 150px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+        
+        .status {
+            padding: 10px 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .example-container {
+            display: none;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .example-btn {
+            background-color: #673AB7;
+            color: white;
+        }
+        
+        .example-btn:hover {
+            background-color: #5e35b1;
+        }
+        
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .button-container {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Python Code Runner</h1>
+            <p class="description">Write and execute Python code directly in your browser</p>
+        </header>
+        
+        <div class="editor-container">
+            <textarea id="code" class="code-editor" placeholder="Write your Python code here..."># Welcome to the Python Code Runner!
+# Try this example or write your own code
+
+def fibonacci(n):
+    """Generate Fibonacci sequence up to n terms"""
+    a, b = 0, 1
+    for i in range(n):
+        print(f"Term {i+1}: {a}")
+        a, b = b, a + b
+
+print("Fibonacci sequence:")
+fibonacci(10)
+</textarea>
+            
+            <div class="button-container">
+                <button id="run-btn">Run Code</button>
+                <button id="clear-btn">Clear Output</button>
+                <button id="examples-btn">Show Examples</button>
+            </div>
+            
+            <div id="example-container" class="example-container">
+                <p>Select an example to load:</p>
+                <div class="example-buttons">
+                    <button class="example-btn" data-example="math">Math Operations</button>
+                    <button class="example-btn" data-example="list">List Operations</button>
+                    <button class="example-btn" data-example="string">String Manipulation</button>
+                    <button class="example-btn" data-example="loop">Loop Example</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="output-container">
+            <div class="output-title">
+                <span>Output</span>
+                <span id="status">Ready</span>
+            </div>
+            <div id="output"></div>
+        </div>
+        
+        <div class="status">
+            <p>Powered by Pyodide - Python running in your browser</p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Python Code Runner &copy; 2023 | All code execution happens in your browser</p>
+    </footer>
+
+    <!-- Load Pyodide -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script>
+        // Initialize Pyodide
+        let pyodide;
+        let outputElement = document.getElementById('output');
+        let statusElement = document.getElementById('status');
+        
+        async function initializePyodide() {
+            statusElement.textContent = "Loading Python runtime...";
+            try {
+                pyodide = await loadPyodide();
+                statusElement.textContent = "Python runtime loaded!";
+                
+                // Set up the Python environment
+                await pyodide.runPython(`
+                    import sys
+                    from js import document
+                    
+                    # Override stdout and stderr to capture output
+                    class OutputCapture:
+                        def write(self, data):
+                            output = document.getElementById("output")
+                            output.textContent += data
+                            
+                        def flush(self):
+                            pass
+                    
+                    sys.stdout = OutputCapture()
+                    sys.stderr = OutputCapture()
+                `);
+            } catch (error) {
+                statusElement.textContent = "Failed to load Python runtime";
+                outputElement.textContent = "Error: " + error.message;
+            }
+        }
+        
+        // Initialize Pyodide on page load
+        initializePyodide();
+        
+        // Run Python code
+        async function runPython() {
+            if (!pyodide) {
+                outputElement.textContent = "Python runtime not loaded yet. Please wait...";
+                return;
+            }
+            
+            const code = document.getElementById('code').value;
+            outputElement.textContent = '';
+            statusElement.textContent = 'Running...';
+            
+            try {
+                await pyodide.runPythonAsync(code);
+                statusElement.textContent = 'Execution completed';
+            } catch (error) {
+                outputElement.textContent = error.message;
+                statusElement.textContent = 'Error occurred';
+            }
+        }
+        
+        // Clear output
+        function clearOutput() {
+            outputElement.textContent = '';
+            statusElement.textContent = 'Ready';
+        }
+        
+        // Toggle examples
+        function toggleExamples() {
+            const examples = document.getElementById('example-container');
+            examples.style.display = examples.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // Load example code
+        function loadExample(exampleType) {
+            const examples = {
+                math: `# Basic math operations
+a = 15
+b = 4
+
+print("a + b =", a + b)
+print("a - b =", a - b)
+print("a * b =", a * b)
+print("a / b =", a / b)
+print("a // b =", a // b)  # floor division
+print("a % b =", a % b)   # modulus
+print("a ** b =", a ** b) # exponentiation
+`,
+                list: `# List operations
+fruits = ["apple", "banana", "cherry", "date"]
+
+print("Original list:", fruits)
+print("First fruit:", fruits[0])
+print("Last fruit:", fruits[-1])
+
+# Slicing
+print("First two fruits:", fruits[:2])
+
+# Adding items
+fruits.append("elderberry")
+print("After append:", fruits)
+
+# Removing items
+removed = fruits.pop(2)
+print(f"Removed {removed}:", fruits)
+
+# List comprehension
+lengths = [len(fruit) for fruit in fruits]
+print("Lengths of fruits:", lengths)
+`,
+                string: `# String manipulation
+text = "Hello World of Python Programming"
+
+print("Original text:", text)
+print("Uppercase:", text.upper())
+print("Lowercase:", text.lower())
+print("Title case:", text.title())
+print("Swap case:", text.swapcase())
+
+# Splitting and joining
+words = text.split()
+print("Words:", words)
+print("First word:", words[0])
+print("Last word:", words[-1])
+
+# Reversing the string
+reversed_text = text[::-1]
+print("Reversed text:", reversed_text)
+
+# Counting occurrences
+print("Count of 'o':", text.count('o'))
+`,
+                loop: `# Loop examples
+print("Counting from 1 to 5:")
+for i in range(1, 6):
+    print(i)
+
+print("\\nMultiplication table (5):")
+for i in range(1, 11):
+    print(f"5 × {i} = {5 * i}")
+
+print("\\nIterating over a list:")
+colors = ["red", "green", "blue", "yellow"]
+for index, color in enumerate(colors):
+    print(f"Color {index + 1}: {color}")
+
+print("\\nNested loops (pattern):")
+for i in range(1, 6):
+    print('*' * i)
+`
+            };
+            
+            if (examples[exampleType]) {
+                document.getElementById('code').value = examples[exampleType];
+                document.getElementById('example-container').style.display = 'none';
+            }
+        }
+        
+        // Set up event listeners
+        document.getElementById('run-btn').addEventListener('click', runPython);
+        document.getElementById('clear-btn').addEventListener('click', clearOutput);
+        document.getElementById('examples-btn').addEventListener('click', toggleExamples);
+        
+        // Add event listeners to example buttons
+        document.querySelectorAll('.example-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                loadExample(this.getAttribute('data-example'));
+            });
+        });
+    </script>
+</body>
+</html>
